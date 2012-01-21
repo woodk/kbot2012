@@ -1,5 +1,9 @@
 #include "KBot.h"
 
+#ifdef USE_CAMERA
+#include "Vision/ColorImage.h"
+#endif
+
 KBot::KBot(void){
 	m_leftJaguar = new CANJaguar(8, CANJaguar::kPercentVbus);
 	m_leftJaguar->Set(0.0);
@@ -11,10 +15,13 @@ KBot::KBot(void){
 	
 	m_Stick = new Joystick(2);
 	
-	camera = &AxisCamera::GetInstance("10.28.08.11");
+#ifdef USE_CAMERA
+	camera = &AxisCamera::GetInstance("192.168.0.90");//"10.28.08.11");
 	camera->WriteResolution(camera->kResolution_320x240);
 	camera->WriteWhiteBalance(camera->kWhiteBalance_FixedIndoor);
 	Wait(3.0);
+#endif
+	
 }// end
 
 KBot::~KBot(void){}
@@ -26,6 +33,15 @@ void KBot::TeleopInit(void){}
 
 void KBot::DisabledPeriodic(void){
 	GetWatchdog().Feed();
+	
+#ifdef USE_CAMERA
+	int nError = camera->GetImage(img);
+	if (1 == nError)
+	{
+		findBestTarget(img);
+	}
+#endif
+	
 }// end
 
 void KBot::AutonomousPeriodic(void){
@@ -47,7 +63,13 @@ void KBot::TeleopPeriodic(void){
 		m_robotDrive->ArcadeDrive(0.0, -0.4);
 	}// end if
 	
-	camera->GetImage(img);
+#ifdef USE_CAMERA
+	int nError = camera->GetImage(img);
+	if (0 == nError)
+	{
+		std::cout << nError << std::endl;
+	}
+#endif
 	
 }// end
 
@@ -83,5 +105,15 @@ void KBot::drive_routine(void) {
 	
 	m_robotDrive->ArcadeDrive(left_y, right_x);
 }// end
+
+#ifdef USE_CAMERA
+void KBot::findBestTarget(Image* pImage)
+{
+	int nError = 0;
+	ColorImage thresholdImage(IMAQ_IMAGE_SGL);
+	nError = imaqThreshold(thresholdImage.GetImaqImage(), pImage, 0, 200, 0, 0);
+
+}
+#endif
 
 START_ROBOT_CLASS(KBot);

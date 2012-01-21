@@ -4,7 +4,11 @@
 // FRC includes
 #include "WPILib.h"
 #include "IterativeRobot.h"
+
+#define USE_CAMERA 1
+#ifdef USE_CAMERA
 #include "nivision.h"
+#endif
 
 class CANJaguar;
 class RobotDrive;
@@ -12,7 +16,7 @@ class Joystick;
 class AxisCamera;
 
 // Parameters
-#define DEADBAND 0.12
+const float DEADBAND = 0.12;
 
 class KBot : public IterativeRobot {
 	
@@ -34,6 +38,19 @@ public:
 	void TeleopContinuous(void){};
 	
 private:
+	
+#ifdef USE_CAMERA
+	// Image analysis
+	void findBestTarget(Image* pImage);
+
+	// Best target parameters (pixels)
+	int m_nIBestTarget;
+	int m_nJBestTarget;
+	
+	AxisCamera *camera;
+	Image *img;
+#endif
+	
 	// Members
 	CANJaguar *m_leftJaguar;
 	CANJaguar *m_rightJaguar;
@@ -41,10 +58,7 @@ private:
 	RobotDrive *m_robotDrive;
 	
 	Joystick *m_Stick;
-	
-	AxisCamera *camera;
-	Image *img;
-	
+
 	// Private Methods
 	void drive_routine(void);
 };
