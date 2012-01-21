@@ -8,6 +8,7 @@
 #define USE_CAMERA 1
 #ifdef USE_CAMERA
 #include "nivision.h"
+#include "DashboardDataSender.h"
 #endif
 
 class CANJaguar;
@@ -48,7 +49,8 @@ private:
 	int m_nJBestTarget;
 	
 	AxisCamera *camera;
-	Image *img;
+	HSLImage image;
+	DashboardDataSender* dds; 
 #endif
 	
 	// Members
@@ -61,4 +63,5 @@ private:
 
 	// Private Methods
 	void drive_routine(void);
+	
 };

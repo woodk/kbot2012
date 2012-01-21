@@ -2,6 +2,7 @@
 
 #ifdef USE_CAMERA
 #include "Vision/ColorImage.h"
+#include "ImageProcessing/ImageProcessing.h"
 #endif
 
 KBot::KBot(void){
@@ -20,6 +21,7 @@ KBot::KBot(void){
 	camera->WriteResolution(camera->kResolution_320x240);
 	camera->WriteWhiteBalance(camera->kWhiteBalance_FixedIndoor);
 	Wait(3.0);
+	//dds = new DashboardDataSender();
 #endif
 	
 }// end
@@ -35,11 +37,14 @@ void KBot::DisabledPeriodic(void){
 	GetWatchdog().Feed();
 	
 #ifdef USE_CAMERA
-	int nError = camera->GetImage(img);
+	int nError = camera->GetImage(image.GetImaqImage());
 	if (1 == nError)
 	{
-		findBestTarget(img);
+		findBestTarget(image.GetImaqImage());
 	}
+	std::vector<Target> targets;
+	//dds->sendVisionData(0.0, 0.0, 0.0, 0.0, targets);
+
 #endif
 	
 }// end
@@ -64,7 +69,7 @@ void KBot::TeleopPeriodic(void){
 	}// end if
 	
 #ifdef USE_CAMERA
-	int nError = camera->GetImage(img);
+	int nError = camera->GetImage(image.GetImaqImage());
 	if (0 == nError)
 	{
 		std::cout << nError << std::endl;
@@ -109,9 +114,13 @@ void KBot::drive_routine(void) {
 #ifdef USE_CAMERA
 void KBot::findBestTarget(Image* pImage)
 {
-	int nError = 0;
-	ColorImage thresholdImage(IMAQ_IMAGE_SGL);
-	nError = imaqThreshold(thresholdImage.GetImaqImage(), pImage, 0, 200, 0, 0);
+    int success = 1;
+    int err = 0;
+
+     // Vision Assistant Algorithm
+     success = IVA_ProcessImage(pImage);
+     if (!success)
+          err = imaqGetLastError();
 
 }
 #endif
